@@ -15,15 +15,18 @@ float AccY = 0.0;
 float AccZ = 0.0;
 float OG_roll = 0.0;
 float OG_pitch = 0.0;
+float initial_roll = 0.0;
+float initial_pitch = 0.0;
 int KALMAN = 0;
 int servo_x = 0;
 int servo_y = 0;
 int x_init = 0;
 int y_init = 0;
+int MINTIME = 0;
 
-int INCREMENT = 36;
-int servo_x_angle = 0;
-int servo_y_angle = 0;
+float INCREMENT = 36;
+float servo_x_angle = 0;
+float servo_y_angle = 0;
 
 int MANUAL_OVERRIDE = 0;
 
@@ -71,6 +74,7 @@ void draw() {
   /* Draw Graph */
   if (drawValues) {
     drawValues = false;
+    strokeWeight(1);
     drawGraph();
   }
   
@@ -90,6 +94,8 @@ void draw() {
   textInc(i++, "roll", roll, graph_colors[GRAPH_ROLL][1]);
   textInc(i++, "servo_y angle", getServoAngle(y_init, servo_y), graph_colors[GRAPH_SERVOY][1]);
   textInc(i++, "servo_x angle", getServoAngle(x_init, servo_x), graph_colors[GRAPH_SERVOX][1]);
+  //textInc(i++, "servo_y", servo_y, graph_colors[GRAPH_SERVOY][1]);
+  //textInc(i++, "servo_x", servo_x, graph_colors[GRAPH_SERVOX][1]);
   textInc(i++, "Measurement_Error", Q_bias);
   textInc(i++, "Estimate_Error", Q_angle);
   textInc(i++, "Process_Noise", R_measure);
@@ -105,6 +111,8 @@ void draw() {
   textInc(i++, "x_init", x_init);
   textInc(i++, "y_init", y_init);
   textInc(i++, "Manual Mode", MANUAL_OVERRIDE);
+  textInc(i++, "intial_roll", initial_roll);
+  textInc(i++, "initial_pitch", initial_pitch);
 
 }
 
@@ -126,8 +134,8 @@ void drawGraph() {
 }
 
 
-int getServoAngle(int pos_init, int pos){
-  int angle = (pos-pos_init)/INCREMENT;
+float getServoAngle(int pos_init, int pos){
+  float angle = (pos-pos_init)/INCREMENT;
   return angle;
 }
 
@@ -168,6 +176,9 @@ void serialEvent()
         GyroZ = float(list[13]); // convert to float roll
         OG_roll = float(list[14]); // convert to float roll
         OG_pitch = float(list[15]); // convert to float roll
+        initial_roll = int(list[16]);
+        initial_pitch = int(list[17]);
+        MINTIME = int(list[18]); // convert to float roll
       }
       if (list.length >= 2 && list[0].equals("Servos:")) {
         servo_x = int(list[1]);
@@ -186,3 +197,41 @@ void serialEvent()
 
   //printAxis(); // Used for debugging
 }
+
+/*
+void serialEvent (Serial serial) {
+  // Get the ASCII strings:
+  stringAccX = serial.readStringUntil('\t');
+  stringGyroX = serial.readStringUntil('\t');
+  stringCompX = serial.readStringUntil('\t');
+  stringKalmanX = serial.readStringUntil('\t');
+
+  serial.readStringUntil('\t'); // Ignore extra tab
+
+  stringAccY = serial.readStringUntil('\t');
+  stringGyroY = serial.readStringUntil('\t');
+  stringCompY = serial.readStringUntil('\t');
+  stringKalmanY = serial.readStringUntil('\t');
+
+  serial.clear(); // Clear buffer
+  drawValues = true; // Draw the graph
+
+  //printAxis(); // Used for debugging
+}
+
+void printAxis() {
+  print(stringGyroX);
+  print(stringAccX);
+  print(stringCompX);
+  print(stringKalmanX);
+
+  print('\t');
+
+  print(stringGyroY);
+  print(stringAccY);
+  print(stringCompY);
+  print(stringKalmanY);
+
+  println();
+}
+*/
