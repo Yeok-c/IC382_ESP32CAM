@@ -14,8 +14,8 @@
 
 #include "camera_pins.h"
 
-const char* ssid = "HMT-Freshmen";
-const char* password = "stars15hmt";
+const char* ssid = "*";
+const char* password = "*";
 const int baud = 115200;
 
 void setup() {
