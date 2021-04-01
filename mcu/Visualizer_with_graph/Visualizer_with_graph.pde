@@ -50,12 +50,13 @@ char lastKey = ' ';
 boolean drawValues  = false;
 
 void setup() {
-  size(800, 600);
+  size(1600, 600, P3D);
   //println(Serial.list()); // Use this to print connected serial devices
   //serial = new Serial(this, Serial.list()[0], 115200); // Set this to your serial port obtained using the line above
   myPort = new Serial(this, "COM19", 115200); // if you have only ONE serial port active
   //myPort.bufferUntil('\n'); // Buffer until line feed
 
+  textMode(SHAPE); // set text mode to shape
   for (int i = 0; i < width; i++) { // center all variables
     graph_gyroX[i] = height/2;
     graph_gyroY[i] = height/2;
@@ -71,6 +72,8 @@ void setup() {
 
 void draw() {
   serialEvent();  // read and parse incoming serial message
+  background(255); // set background to white
+  lights();
   /* Draw Graph */
   if (drawValues) {
     drawValues = false;
@@ -114,13 +117,33 @@ void draw() {
   textInc(i++, "intial_roll", initial_roll);
   textInc(i++, "initial_pitch", initial_pitch);
 
+  translate(width*3/2, height/2); // set position to centre
+
+  pushMatrix(); // begin object
+
+  yaw = 270;
+  float c1 = cos(radians(roll));
+  float s1 = sin(radians(roll));
+  float c2 = cos(radians(pitch));
+  float s2 = sin(radians(pitch));
+  float c3 = cos(radians(yaw));
+  float s3 = sin(radians(yaw));
+  applyMatrix( c2*c3, s1*s3+c1*c3*s2, c3*s1*s2-c1*s3, 0, 
+    -s2, c1*c2, c2*s1, 0, 
+    c2*s3, c1*s2*s3-c3*s1, c1*c3+s1*s2*s3, 0, 
+    0, 0, 0, 1);
+
+  drawArduino();
+
+  popMatrix(); // end of object
 }
 
 void drawGraph() {
   background(255); // White
-  for (int i = 0; i < width; i++) {
-    stroke(200); // Grey
-    line(i*10, 0, i*10, height);
+  stroke(200); // Grey
+  strokeWeight(1);
+  for (int i = 0; i < width/2; i++) {
+    //line(i*10, 0, i*10, height);
     line(0, i*10, width, i*10);
   }
 
@@ -141,12 +164,12 @@ float getServoAngle(int pos_init, int pos){
 
 void textInc(int pos, String valname, float value) {
   fill(0);
-  text(valname + ": " + value, 50, 100+pos*20);
+  text(valname + ": " + value, width+50, 100+pos*20);
 }
 
 void textInc(int pos, String valname, float value, int color_index) {
   fill(color_index);
-  text(valname + ": " + value, 50, 100+pos*20);
+  text(valname + ": " + value, width+50, 100+pos*20);
 }
 
 void serialEvent()
@@ -196,6 +219,23 @@ void serialEvent()
   drawValues = true; // Draw the graph
 
   //printAxis(); // Used for debugging
+}
+
+void drawArduino()
+{ 
+  /* function contains shape(s) that are rotated with the IMU */
+  stroke(0, 90, 90); // set outline colour to darker teal
+  fill(0, 130, 130); // set fill colour to lighter teal
+  box(300, 10, 200); // draw Arduino board base shape
+
+  stroke(0); // set outline colour to black
+  fill(80); // set fill colour to dark grey
+
+  translate(60, -10, 90); // set position to edge of Arduino box
+  box(170, 20, 10); // draw pin header as box
+
+  translate(-20, 0, -180); // set position to other edge of Arduino box
+  box(210, 20, 10); // draw other pin header as box
 }
 
 /*
