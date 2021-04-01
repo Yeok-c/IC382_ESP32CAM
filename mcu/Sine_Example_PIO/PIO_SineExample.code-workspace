@@ -1,0 +1,17 @@
+{
+	"folders": [
+		{
+			"name": "ESP32_Sine",
+			"path": "D:\\yeokc\\Documents\\PlatformIO\\Projects\\ESP32_Sine"
+		},
+		{
+			"name": "MPU6050_PIO",
+			"path": "D:\\yeokc\\Documents\\PlatformIO\\Projects\\MPU6050_PIO"
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"cmath": "cpp"
+		}
+	}
+}
