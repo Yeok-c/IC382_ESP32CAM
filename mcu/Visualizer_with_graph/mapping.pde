@@ -5,9 +5,9 @@ final int minGyro = -10;
 final int maxGyro = 10;
 
 void convert() {
-  graph_gyroX[graph_gyroX.length - 1] = map(GyroX, minGyro, maxGyro, 0, height); // Convert to a float and map to the screen height, then save in buffer
+  graph_gyroX[graph_gyroX.length - 1] = map(comp_roll, minAngle, maxAngle, 0, height); // Convert to a float and map to the screen height, then save in buffer
 
-  graph_gyroY[graph_gyroY.length - 1] = map(GyroY, minGyro, maxGyro, 0, height); // Convert to a float and map to the screen height, then save in buffer
+  graph_gyroY[graph_gyroY.length - 1] = map(comp_pitch, minAngle, maxAngle, 0, height); // Convert to a float and map to the screen height, then save in buffer
 
   graph_accX[graph_accX.length - 1] = map(AccX, minAngle/6, maxAngle/6, 0, height); // Convert to a float and map to the screen height, then save in buffer
 

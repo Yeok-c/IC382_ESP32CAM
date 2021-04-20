@@ -1,7 +1,8 @@
 {
     "folders": [
         {
-            "path": "D:\\yeokc\\Documents\\PlatformIO\\Projects\\MPU6050_Adafruit_PIO"
+            "name": "ESP32CAM_SD",
+            "path": "ESP_CAM_SDTest\\ESP32CAM_SD"
         }
     ]
 }

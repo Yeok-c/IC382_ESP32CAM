@@ -13,8 +13,8 @@ float GyroZ = 0.0;
 float AccX = 0.0;
 float AccY = 0.0;
 float AccZ = 0.0;
-float OG_roll = 0.0;
-float OG_pitch = 0.0;
+float comp_roll = 0.0;
+float comp_pitch = 0.0;
 float initial_roll = 0.0;
 float initial_pitch = 0.0;
 int KALMAN = 0;
@@ -22,7 +22,7 @@ int servo_x = 0;
 int servo_y = 0;
 int x_init = 0;
 int y_init = 0;
-int MINTIME = 0;
+float alpha = 0;
 
 float INCREMENT = 36;
 float servo_x_angle = 0;
@@ -95,6 +95,8 @@ void draw() {
 
   textInc(i++, "pitch", pitch, graph_colors[GRAPH_PITCH][1]);
   textInc(i++, "roll", roll, graph_colors[GRAPH_ROLL][1]);
+  textInc(i++, "comp_roll", comp_roll, graph_colors[GRAPH_GYROX][1]);
+  textInc(i++, "comp_pitch", comp_pitch, graph_colors[GRAPH_GYROY][1]);
   textInc(i++, "servo_y angle", getServoAngle(y_init, servo_y), graph_colors[GRAPH_SERVOY][1]);
   textInc(i++, "servo_x angle", getServoAngle(x_init, servo_x), graph_colors[GRAPH_SERVOX][1]);
   //textInc(i++, "servo_y", servo_y, graph_colors[GRAPH_SERVOY][1]);
@@ -106,16 +108,15 @@ void draw() {
   textInc(i++, "AccX", AccX, graph_colors[GRAPH_ACCX][1]);
   textInc(i++, "AccY", AccY,graph_colors[GRAPH_ACCY][1]);
   textInc(i++, "AccZ", AccZ);
-  textInc(i++, "GyroX", GyroX, graph_colors[GRAPH_GYROX][1]);
-  textInc(i++, "GyroY", GyroY, graph_colors[GRAPH_GYROY][1]);
+  textInc(i++, "GyroX", GyroX);
+  textInc(i++, "GyroY", GyroY);
   textInc(i++, "GyroZ", GyroZ);
-  textInc(i++, "OG_roll", OG_roll);
-  textInc(i++, "OG_pitch", OG_pitch);
   textInc(i++, "x_init", x_init);
   textInc(i++, "y_init", y_init);
   textInc(i++, "Manual Mode", MANUAL_OVERRIDE);
   textInc(i++, "intial_roll", initial_roll);
   textInc(i++, "initial_pitch", initial_pitch);
+  textInc(i++, "alpha", alpha);
 
   translate(width*3/2, height/2); // set position to centre
 
@@ -197,11 +198,11 @@ void serialEvent()
         GyroX = float(list[11]); // convert to float roll
         GyroY = float(list[12]); // convert to float roll
         GyroZ = float(list[13]); // convert to float roll
-        OG_roll = float(list[14]); // convert to float roll
-        OG_pitch = float(list[15]); // convert to float roll
+        comp_roll = float(list[14]); // convert to float roll
+1
         initial_roll = int(list[16]);
         initial_pitch = int(list[17]);
-        MINTIME = int(list[18]); // convert to float roll
+        alpha = float(list[18]); // convert to float roll
       }
       if (list.length >= 2 && list[0].equals("Servos:")) {
         servo_x = int(list[1]);

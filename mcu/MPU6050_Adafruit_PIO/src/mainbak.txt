@@ -1,0 +1,54 @@
+
+
+#define TIMER_WIDTH 16
+#define INCREMENT 36
+#include "esp32-hal-ledc.h"
+#include "Arduino.h"
+#include <Wire.h>
+
+int servo_x = 0;
+int servo_y = 0;
+int x_init = 4400;
+int y_init = 4400;
+
+
+void setup() {
+  Serial.begin(115200);
+
+  ledcSetup(1, 50, TIMER_WIDTH); // channel 1, 50 Hz, 16-bit width
+  ledcSetup(2, 50, TIMER_WIDTH); // channel 1, 50 Hz, 16-bit width
+  ledcAttachPin(2, 1);   // GPIO 22 assigned to channel 1
+  ledcAttachPin(14, 2);       // GPIO 22 assigned to channel 1
+  
+  //8000 for 90 degree so
+  servo_x = x_init;
+  servo_y = y_init;
+  ledcWrite(1, 4400);       // sweep servo 1
+  ledcWrite(2, 4400);
+  Serial.println("Servo Initiated");
+
+  delay(5000);
+}
+int mode = 0;
+void loop() {
+  Serial.print("servo_x: "); Serial.println(servo_x);
+  if(mode == 1) {
+    servo_x+=INCREMENT;
+    servo_y+=INCREMENT;
+  }
+  else {
+    servo_x-=INCREMENT;
+    servo_y-=INCREMENT;
+  }
+
+  if(servo_x < 3000){ //less than
+    mode = 1;
+  }
+  else if (servo_x > 5500){
+    mode = 0;
+  }
+  servo_y--;
+  ledcWrite(1, servo_x);       // sweep servo 1
+  ledcWrite(2, servo_y);  
+  delay(10);
+}
