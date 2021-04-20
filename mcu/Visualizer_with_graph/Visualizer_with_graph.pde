@@ -23,7 +23,8 @@ int servo_y = 0;
 int x_init = 0;
 int y_init = 0;
 float alpha = 0;
-
+int X_CAPPED = 0;
+int Y_CAPPED = 0;
 float INCREMENT = 36;
 float servo_x_angle = 0;
 float servo_y_angle = 0;
@@ -99,6 +100,8 @@ void draw() {
   textInc(i++, "comp_pitch", comp_pitch, graph_colors[GRAPH_GYROY][1]);
   textInc(i++, "servo_y angle", getServoAngle(y_init, servo_y), graph_colors[GRAPH_SERVOY][1]);
   textInc(i++, "servo_x angle", getServoAngle(x_init, servo_x), graph_colors[GRAPH_SERVOX][1]);
+  textInc(i++, "X_CAPPED", X_CAPPED);
+  textInc(i++, "Y_CAPPED", Y_CAPPED);
   //textInc(i++, "servo_y", servo_y, graph_colors[GRAPH_SERVOY][1]);
   //textInc(i++, "servo_x", servo_x, graph_colors[GRAPH_SERVOX][1]);
   textInc(i++, "Measurement_Error", Q_bias);
@@ -148,9 +151,9 @@ void drawGraph() {
     line(0, i*10, width, i*10);
   }
 
-  stroke(0); // Black
-  for (int i = 1; i <= 3; i++)
-    line(0, height/4*i, width, height/4*i); // Draw line, indicating -90 deg, 0 deg and 90 deg
+//  stroke(0); // Black
+//  for (int i = 1; i <= 3; i++)
+//    line(0, height/4*i, width, height/4*i); // Draw line, indicating -90 deg, 0 deg and 90 deg
 
   convert();
   drawAxisX();
@@ -199,7 +202,7 @@ void serialEvent()
         GyroY = float(list[12]); // convert to float roll
         GyroZ = float(list[13]); // convert to float roll
         comp_roll = float(list[14]); // convert to float roll
-1
+
         initial_roll = int(list[16]);
         initial_pitch = int(list[17]);
         alpha = float(list[18]); // convert to float roll
@@ -211,7 +214,9 @@ void serialEvent()
         y_init = int(list[4]);
         servo_x_angle = -getServoAngle(x_init, servo_x); //Although its like when tilted right, rotate left, values are normalized for better visualization
         servo_y_angle = -getServoAngle(y_init, servo_y);
-        MANUAL_OVERRIDE = int(list[5]); // convert to float roll
+        X_CAPPED = int(list[5]);
+        Y_CAPPED = int(list[6]);
+        MANUAL_OVERRIDE = int(list[7]); // convert to float roll
       }
     }
   } while (message != null);

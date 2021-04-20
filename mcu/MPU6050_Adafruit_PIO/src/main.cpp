@@ -171,6 +171,7 @@ void IMU_setup(void) {
   Serial.println("");
   delay(100);
 }
+
 float pitch2 = 0;
 float last_gyro_val = 0;
 int gyro_count = 0;
@@ -178,6 +179,10 @@ unsigned long last_gyro_time = 0;
 float last_roll;
 float last_pitch;
 
+long int last_servo_time = 0;
+
+int X_CAPPED = 0;
+int Y_CAPPED = 0;
 
 void IMU_Test(void) {
   float ax, ay, az;
@@ -233,8 +238,7 @@ void IMU_Test(void) {
   else final_roll = comp_roll;
   last_gyro_time = micros();
 
-  if(MANUAL_OVERRIDE == 0){
-
+//----------------- No problem
     //Limit roll and pitch so it doensn't hit anything
     if(final_roll > 20){
       final_roll = 20;
@@ -249,25 +253,42 @@ void IMU_Test(void) {
     if(final_pitch < -30){
       final_pitch = -30;
     }
-    
-    //Travel in small step to not overcurrent
-    int difference_roll= final_roll-last_roll; //positive is if current > last
-    if(abs(difference_roll) > 5){
-      if(difference_roll > 0) final_roll = last_roll + 5; //if difference is positive, add a bit to last and just move that increment
-      if (difference_roll < 0) final_roll = last_roll - 5; //if difference i negative, deduct a bit to last and just move that increment
+    //---------------Shotgun end ---------------
+
+
+  //Travel in small step to not overcurrent
+  int SERVO_GAIN = 2;
+  if(millis() - last_servo_time > 1){
+    last_servo_time = millis();
+
+    X_CAPPED = 0;
+    Y_CAPPED = 0;
+    //Current roll = 10, 
+    //Last roll = 3
+    int difference_roll= final_roll-last_roll; //positive is if current > last; diff_roll = 7
+    if(abs(difference_roll) > SERVO_GAIN){ //diff_roll > servo_gain
+      //diff_roll > 0 so final_roll = 3 + 1 = 4
+      if(difference_roll > 0) final_roll = last_roll + SERVO_GAIN; //if difference is positive, add a bit to last and just move that increment
+      if (difference_roll < 0) final_roll = last_roll - SERVO_GAIN; //if difference i negative, deduct a bit to last and just move that increment
+      X_CAPPED = 1;
     }    
-    servo_x = x_init - final_roll * INCREMENT;
-    ledcWrite(1, servo_x);       
 
     //Travel in small step to not overcurrent
     int difference_pitch= final_pitch-last_pitch; //positive is if current > last
-    if(abs(difference_pitch) > 5){
-      if(difference_pitch > 0) final_pitch = last_pitch + 5; //if difference is positive, add a bit to last and just move that increment
-      if (difference_pitch < 0) final_pitch = last_pitch - 5; //if difference i negative, deduct a bit to last and just move that increment
+    if(abs(difference_pitch) > SERVO_GAIN){
+      if(difference_pitch > 0) final_pitch = last_pitch + SERVO_GAIN; //if difference is positive, add a bit to last and just move that increment
+      if (difference_pitch < 0) final_pitch = last_pitch - SERVO_GAIN; //if difference i negative, deduct a bit to last and just move that increment
+      Y_CAPPED = 1;
     }    
+  }
+
+  if(MANUAL_OVERRIDE == 0){
     servo_y = y_init - final_pitch * INCREMENT;
+    servo_x = x_init - final_roll * INCREMENT;
+    ledcWrite(1, servo_x);       
     ledcWrite(2, servo_y);       
   }
+  
   last_roll = final_roll;
   last_pitch = final_pitch;
 
@@ -318,6 +339,10 @@ void IMU_Test(void) {
   Serial.print(" ");
   Serial.print(y_init);
   Serial.print(" ");
+  Serial.print(X_CAPPED); 
+  Serial.print(" ");
+  Serial.print(Y_CAPPED);
+  Serial.print(" ");
   Serial.println(MANUAL_OVERRIDE);
 
   char nRxData;
@@ -359,8 +384,8 @@ void IMU_Test(void) {
         y_init = servo_y;
         x_init = servo_x;
       }
-      ledcWrite(1, servo_x);       
-      ledcWrite(2, servo_y);       
+      //ledcWrite(1, servo_x);       
+      //ledcWrite(2, servo_y);       
     }
 
     if(nRxData == '.'){
