@@ -1,55 +1,47 @@
-
-#define TIMER_WIDTH 16
-#define INCREMENT 36
-#include "esp32-hal-ledc.h"
-int servo_x = 0;
-int servo_y = 0;
-int x_init = 4400;
-int y_init = 4400;
-float bias_pitch = 0;
-float bias_roll = 0;
-float bias_g_pitch = 0;
-float bias_g_roll = 0;
-int MINTIME = 0;
-
-unsigned long last_time = 0;
-int SDAPin = 13;
-int SCLPin = 15; 
-
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
 #include <SimpleKalmanFilter.h>
 
-//TJK's Library integrates both Gyro + Accel data during the Kalman Filtering Process
-//It doesn't work for me and without understanding it I cannot fix it
-//So my approach is to use the simplest Kalman Filter and integrate Gyro readings my way.
-//#include "Kalman.h" // Source: https://github.com/TKJElectronics/KalmanFilter
-//Kalman kalmanX; // Create the Kalman instances
-//Kalman kalmanY;
+//SERVO VARIABLES
+#define TIMER_WIDTH 16
+#define INCREMENT 36
+#include "esp32-hal-ledc.h"
+int servo_x = 0;
+int servo_y = 0;
+float bias_pitch = 0;
+float bias_roll = 0;
+float bias_g_pitch = 0;
+float bias_g_roll = 0;
 
-float alpha = 0.75;
-int KALMAN = 0;
-bool MANUAL_OVERRIDE = 0;
+//CHANGEABLE VARIABLES
+int x_init = 4400;
+int y_init = 4400;
+int MINTIME = 10; 
+float SERVO_GAIN = 1;
+
+
+//MPU6050 AND FILTERS
+unsigned long last_time = 0;
+int SDAPin = 13;
+int SCLPin = 15; 
 uint32_t timer;
 
-//float Estimate_Error = 0.35;
-//float Measurement_Error = 0.6;
-//float Process_Noise = 0.0148;
+//CHANGEABLE VARIABLES
+float alpha = 0.75;       //Larger Alpha -> Trust accelerometer and kalman more, gyroscope less (less sensitive to fast turns but more stable)
+int KALMAN = 0;           //KALMAN = 0 for complementary filter, KALMAN = 1 for no complementary filter
+bool MANUAL_OVERRIDE = 0; //Whether to initiate the servo in manual mode
 
+float Estimate_Error = 0.18;    //original = 0.35;
+float Measurement_Error = 0.01; //original = 0.6
+float Process_Noise = 0.0188;   //original = 0.0148
 
-float Estimate_Error = 0.18;
-float Measurement_Error = 0.01;
-float Process_Noise = 0.0188;
-
-//SimpleKalmanFilter xFilter(2, 2, 0.01);
-//SimpleKalmanFilter yFilter(2, 2, 0.01);
 SimpleKalmanFilter xFilter(Estimate_Error, Measurement_Error, Process_Noise);
 SimpleKalmanFilter yFilter(Estimate_Error, Measurement_Error, Process_Noise);
 
 Adafruit_MPU6050 mpu;
 void IMU_setup(void);
-void IMU_Test(void);
+void IMU_SERVO(void);
 
 
 void setup() {
@@ -85,10 +77,11 @@ void setup() {
   }
 
 
+  //This current configuration cannot simultaneously support camera and servo but supposedly it works with higher timer frequency
   ledcSetup(1, 50, TIMER_WIDTH); // channel 1, 50 Hz, 16-bit width
-  ledcSetup(2, 50, TIMER_WIDTH); // channel 1, 50 Hz, 16-bit width
-  ledcAttachPin(2, 1);   // GPIO 22 assigned to channel 1
-  ledcAttachPin(14, 2);       // GPIO 22 assigned to channel 1
+  ledcSetup(2, 50, TIMER_WIDTH); // channel 2, 50 Hz, 16-bit width
+  ledcAttachPin(2, 1);   // GPIO 2 assigned to channel 1
+  ledcAttachPin(14, 2);       // GPIO 14 assigned to channel 1
   
 
   //8000 for 90 degree so
@@ -112,11 +105,8 @@ void setup() {
 unsigned long last_loop_time = 0;
 
 void loop() {
-//  if(millis() - last_loop_time > 20){
-    IMU_Test();
-    last_loop_time = millis();
-    //SERVO_Test();
-// }
+  IMU_SERVO();
+  //SERVO_Test();
 }
 
 
@@ -184,7 +174,7 @@ long int last_servo_time = 0;
 int X_CAPPED = 0;
 int Y_CAPPED = 0;
 
-void IMU_Test(void) {
+void IMU_SERVO(void) {
   float ax, ay, az;
   float gx, gy, gz;
   float roll, pitch;
@@ -238,7 +228,6 @@ void IMU_Test(void) {
   else final_roll = comp_roll;
   last_gyro_time = micros();
 
-//----------------- No problem
     //Limit roll and pitch so it doensn't hit anything
     if(final_roll > 20){
       final_roll = 20;
@@ -253,19 +242,16 @@ void IMU_Test(void) {
     if(final_pitch < -30){
       final_pitch = -30;
     }
-    //---------------Shotgun end ---------------
-
 
   //Travel in small step to not overcurrent
-  int SERVO_GAIN = 2;
-  if(millis() - last_servo_time > 1){
+  if(millis() - last_servo_time > MINTIME){
     last_servo_time = millis();
 
     X_CAPPED = 0;
     Y_CAPPED = 0;
     //Current roll = 10, 
     //Last roll = 3
-    int difference_roll= final_roll-last_roll; //positive is if current > last; diff_roll = 7
+    int difference_roll= final_roll-last_roll; //positive is if current > last;
     if(abs(difference_roll) > SERVO_GAIN){ //diff_roll > servo_gain
       //diff_roll > 0 so final_roll = 3 + 1 = 4
       if(difference_roll > 0) final_roll = last_roll + SERVO_GAIN; //if difference is positive, add a bit to last and just move that increment

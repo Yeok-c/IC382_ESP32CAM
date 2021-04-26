@@ -9,9 +9,14 @@ void convert() {
 
   //graph_gyroY[graph_gyroY.length - 1] = map(comp_pitch, minAngle, maxAngle, 0, height); // Convert to a float and map to the screen height, then save in buffer
 
-  //graph_accX[graph_accX.length - 1] = map(AccX, minAngle/6, maxAngle/6, 0, height); // Convert to a float and map to the screen height, then save in buffer
+  //graph_accX[graph_accX.length - 1] = map(comp_roll, minAngle, maxAngle, 0, height); // Convert to a float and map to the screen height, then save in buffer
 
-  //graph_accY[graph_accY.length - 1] = map(AccY, minAngle/6, maxAngle/6, 0, height); // Convert to a float and map to the screen height, then save in buffer
+  //graph_accY[graph_accY.length - 1] = map(comp_pitch, minAngle, maxAngle, 0, height); // Convert to a float and map to the screen height, then save in buffer
+
+  graph_accX[graph_accX.length - 1] = map(AccX, minAngle/6, maxAngle/6, 0, height); // Convert to a float and map to the screen height, then save in buffer
+
+  graph_accY[graph_accY.length - 1] = map(AccY, minAngle/6, maxAngle/6, 0, height); // Convert to a float and map to the screen height, then save in buffer
+
 
   graph_servoX[graph_servoX.length - 1] = map(servo_x_angle, minAngle, maxAngle, 0, height); // Convert to a float and map to the screen height, then save in buffer
 
